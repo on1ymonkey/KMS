@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KELYZINHA WORLD - Para Kelyta!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos gerais para o corpo da página */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom right, #ffdde1, #ee9ca7); /* Gradiente romântico */
+            color: #4a5568; /* Cor do texto mais escura */
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-x: hidden; /* Evita rolagem horizontal */
+        }
+
+        /* Estilo para o título principal */
+        h1 {
+            font-family: 'Pacifico', cursive; /* Fonte mais decorativa */
+            color: #8b0000; /* Vermelho escuro para o título */
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Parágrafos de descrição */
+        p {
+            text-align: center;
+            max-width: 700px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 1.1em;
+            color: #5d6d7e;
+        }
+
+        /* Contêiner principal do jogo */
+        #game-container {
+            background-color: rgba(255, 255, 255, 0.95); /* Fundo branco translúcido */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 95vw;
+            width: 800px; /* Largura base do contêiner */
+            margin-top: 20px;
+        }
+
+        /* Canvas do jogo */
+        canvas {
+            display: block;
+            background-color: #a0c4ff; /* Céu azul claro - será substituído por gradiente ou imagem */
+            border: 2px solid #8b0000; /* Borda vermelha */
+            border-radius: 8px;
+            margin: 0 auto 15px auto; /* Centraliza o canvas */
+        }
+
+        /* Painel de informações do jogo */
+        #game-info {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #8b0000;
+            margin-bottom: 15px;
+        }
+
+        /* Estilos dos botões */
+        .game-button {
+            background-color: #ff6b6b; /* Vermelho vibrante */
+            color: white;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
+            margin: 10px;
+        }
+
+        .game-button:hover {
+            background-color: #e63946; /* Vermelho mais escuro */
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(230, 57, 70, 0.5);
+        }
+
+        .game-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(255, 107, 107, 0.4);
+        }
+
+        /* Estilo da tela final */
+        #final-screen {
+            display: none;
+            padding: 30px;
+        }
+
+        #final-message {
+            font-family: 'Pacifico', cursive;
+            font-size: 2.2em;
+            color: #8b0000;
+            margin-bottom: 25px;
+            line-height: 1.3;
+        }
+
+        /* Mensagem de feedback (ex: "Acertou!") */
+        #feedback-message {
+            margin-top: 10px;
+            min-height: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #28a745; /* Verde para sucesso */
+        }
+
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+            text-align: center;
+        }
+
+        .message-box button {
+            margin-top: 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Controles móveis */
+        #mobile-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end; /* Alinha os botões na parte inferior */
+            z-index: 500; /* Garante que os controles fiquem acima de outros elementos */
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); /* Fundo sutil para os botões */
+        }
+
+        .control-button {
+            background-color: #8b0000; /* Vermelho escuro */
+            color: white;
+            font-size: 2em; /* Tamanho grande para toque */
+            width: 60px;
+            height: 60px;
+            border-radius: 50%; /* Botões redondos */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .control-button:active {
+            transform: scale(0.95);
+            background-color: #e63946; /* Vermelho mais claro ao tocar */
+        }
+        
+        /* Direcional container */
+        #directional-controls {
+            display: flex;
+            gap: 10px; /* Espaço entre os botões direcionais */
+        }
+
+        /* Oculta os controles móveis em telas maiores */
+        @media (min-width: 769px) {
+            #mobile-controls {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            p {
+                font-size: 0.9em;
+            }
+            #game-container {
+                padding: 15px;
+                width: 100%;
+            }
+            canvas {
+                height: 250px; /* Ajusta a altura do canvas para mobile */
+            }
+            .game-button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+            #final-message {
+                font-size: 1.6em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>A Aventura do Nosso Amor</h1>
+    <p>Prepare-se, Amor! Uma aventura especial te espera neste Dia dos Namorados. Colete todos os corações em cada fase para avançar!</p>
+    <p>Use as teclas <b>A</b> e <b>D</b> para mover o personagem e <b>Espaço</b> para pular.</p>
+
+    <div id="game-container">
+        <div id="start-screen">
+            <button id="startButton" class="game-button">Começar Aventura!</button>
+        </div>
+
+        <div id="game-screen" style="display: none;">
+            <div id="game-info">Fase: <span id="current-level-display">1</span> / 10</div>
+            <canvas id="gameCanvas" width="760" height="380"></canvas>
+            <div id="feedback-message"></div>
+            <button id="restartLevelButton" class="game-button" style="display:none;">Tentar novamente</button>
+        </div>
+
+        <div id="final-screen" style="display: none;">
+            <h2 id="final-message"></h2>
+            <button id="playAgainButton" class="game-button">Jogar novamente</button>
+        </div>
+    </div>
+
+    <!-- Controles Móveis (apenas visíveis em telas pequenas) -->
+    <div id="mobile-controls">
+        <div id="directional-controls">
+            <button id="leftButton" class="control-button">«</button>
+            <button id="rightButton" class="control-button">»</button>
+        </div>
+        <button id="jumpButton" class="control-button">Jump</button>
+    </div>
+
+
+    <!-- Message Box -->
+    <div id="messageBox" class="message-box">
+        <p id="messageBoxText"></p>
+        <button id="messageBoxOkButton">OK</button>
+    </div>
+
+    <script>
+        // Declarando e inicializando as constantes e arrays no escopo global
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const CANVAS_WIDTH = canvas.width;
+        const CANVAS_HEIGHT = canvas.height;
+
+        // Estrelas estáticas - geradas uma única vez
+        const backgroundStars = [];
+        function generateStaticStars() {
+            if (backgroundStars.length === 0) { 
+                const numStars = 200;
+                const starSize = 2;
+                for (let i = 0; i < numStars; i++) {
+                    const starX = Math.floor(Math.random() * (CANVAS_WIDTH / starSize)) * starSize;
+                    const starY = Math.floor(Math.random() * (CANVAS_HEIGHT / starSize)) * starSize;
+                    backgroundStars.push({ x: starX, y: starY, size: starSize });
+                }
+            }
+        }
+        generateStaticStars(); // Chama para gerar as estrelas ao carregar o script pela primeira vez
+
+        // Nuvens
+        const clouds = [
+            { x: 100, y: 50, width: 80, height: 40, speed: 0.3 },
+            { x: 300, y: 80, width: 120, height: 50, speed: 0.2 },
+            { x: 550, y: 60, width: 90, height: 45, speed: 0.25 }
+        ];
+
+        // Flores estáticas das plataformas - geradas uma única vez por plataforma
+        function generateFlowersForPlatform(platform) {
+            const flowersForThisPlatform = []; // Array para as flores desta plataforma específica
+            const numFlowers = Math.floor(platform[2] / 30); // Flor a cada 30 pixels de largura
+            const flowerColors = ['#FFC0CB', '#FFFF00', '#FF4500', '#8A2BE2', '#FFFFFF']; // Rosa, Amarelo, Laranja, Violeta, Branco
+            const petalSize = 2; // Tamanho do círculo da pétala
+
+            for (let i = 0; i < numFlowers; i++) {
+                const flowerBaseX = (i * 30) + 10 + Math.random() * 10; // X relativo dentro da plataforma
+                const flowerBaseY = platform[3] / 4 + (Math.random() * 5 - 2.5); // Y relativo dentro da área da grama
+                const flowerColor = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+                
+                flowersForThisPlatform.push({ 
+                    x_rel: flowerBaseX, 
+                    y_rel: flowerBaseY, 
+                    color: flowerColor, 
+                    petalSize: petalSize 
+                });
+            }
+            return flowersForThisPlatform; // Retorna as flores geradas para esta plataforma
+        }
+
+        (function() { // Início da IIFE
+            // Propriedades do jogador
+            const player = {
+                x: 50,
+                y: CANVAS_HEIGHT - 60, // Começa acima do chão
+                width: 0, // Será ajustado ao carregar a imagem
+                height: 0, // Será ajustado ao carregar a imagem
+                speed: 5,
+                velocityY: 0,
+                gravity: 0.5,
+                jumpStrength: -10,
+                onGround: false,
+                image: new Image(), // Objeto Image para o personagem
+                imageLoaded: false, // Flag para verificar se a imagem foi carregada
+                facingRight: true // Nova propriedade: true se estiver virado para a direita, false para a esquerda
+            };
+
+            // Carrega a imagem do jogador
+            player.image.src = 'https://i.postimg.cc/kBztzty2/kelyta-personagem.png';
+
+            player.image.onload = () => {
+                player.imageLoaded = true;
+                // Define as dimensões do jogador com base nas dimensões naturais da imagem
+                player.width = player.image.naturalWidth;
+                player.height = player.image.naturalHeight;
+
+                // Opcional: Se a imagem for muito grande, redimensione-a proporcionalmente
+                const maxWidth = 60; // Largura máxima desejada para o personagem
+                const maxHeight = 60; // Altura máxima desejada para o personagem
+
+                if (player.width > maxWidth || player.height > maxHeight) {
+                    const aspectRatio = player.width / player.height;
+                    if (player.width > player.height) {
+                        player.width = maxWidth;
+                        player.height = maxWidth / aspectRatio;
+                    } else {
+                        player.height = maxHeight;
+                        player.width = maxHeight * aspectRatio;
+                    }
+                }
+                console.log(`Imagem do personagem carregada e redimensionada para: ${player.width.toFixed(2)}x${player.height.toFixed(2)}`);
+
+                // Ajusta a posição Y inicial do jogador para que ele fique na plataforma
+                player.y = CANVAS_HEIGHT - 30 - player.height;
+            };
+            player.image.onerror = () => {
+                console.error('Erro ao carregar a imagem do personagem. Verifique a URL e as permissões de CORS.');
+                // Fallback para o desenho padrão se a imagem não carregar
+                player.imageLoaded = false;
+                // Define um tamanho padrão para o fallback caso a imagem não carregue
+                player.width = 50;
+                player.height = 50;
+            };
+
+
+            // Propriedades do coração (colecionável)
+            const heart = {
+                x: 0,
+                y: 0,
+                size: 30, // Base size, será ajustado ao carregar a imagem se for muito grande
+                image: new Image(), // Objeto Image para o coração
+                imageLoaded: false // Flag para verificar se a imagem foi carregada
+            };
+
+            // Carrega a imagem do coração
+            heart.image.src = 'https://i.postimg.cc/YSz2LW5M/20250612-0917-Cora-o-de-Jogo-8-Bit-simple-compose-01jxj14871emdrkvfar67rphp2-removebg-preview.png';
+
+            heart.image.onload = () => {
+                heart.imageLoaded = true;
+                // Redimensiona o coração para ter no máximo 30x30 pixels, mantendo a proporção
+                heart.size = Math.min(heart.image.naturalWidth, heart.image.naturalHeight, 30);
+                console.log(`Imagem do coração carregada e redimensionada para: ${heart.size}x${heart.size}`);
+            };
+            heart.image.onerror = () => {
+                console.error('Erro ao carregar a imagem do coração. Verifique a URL e as permissões de CORS.');
+                heart.imageLoaded = false;
+                heart.size = 20; // Fallback para tamanho padrão se a imagem não carregar
+            };
+            
+            // Efeitos sonoros
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Garante que o contexto de áudio seja resumido na primeira interação do usuário
+            function resumeAudioContext() {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log('AudioContext resumed successfully');
+                    }).catch(e => console.error('Erro ao resumir AudioContext:', e));
+                }
+                // Remove este listener após a primeira interação para evitar chamadas duplicadas
+                document.removeEventListener('click', resumeAudioContext);
+                document.removeEventListener('keydown', resumeAudioContext);
+            }
+            document.addEventListener('click', resumeAudioContext);
+            document.addEventListener('keydown', resumeAudioContext);
+
+
+            function playSound(type) {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch (type) {
+                    case 'jump':
+                        oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4
+                        gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+                        break;
+                    case 'collect':
+                        oscillator.type = 'triangle';
+                        oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+                        gainNode.gain.setValueAtTime(0.7, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+                        break;
+                    case 'fall':
+                        oscillator.type = 'sawtooth';
+                        oscillator.frequency.setValueAtTime(100, audioContext.currentTime); // C2
+                        gainNode.gain.setValueAtTime(0.6, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+                        break;
+                }
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            }
+
+            // Dados do nível - defina seus 10 níveis aqui!
+            // Cada nível tem plataformas e uma posição de coração.
+            // Plataformas: [x, y, largura, altura]
+            // Coração: [x, y]
+            // Você pode adicionar a propriedade 'message' para exibir após completar um nível.
+            const levels = [
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30], // Chão
+                        [100, CANVAS_HEIGHT - 90, 80, 20],
+                        [250, CANVAS_HEIGHT - 150, 100, 20]
+                    ],
+                    heart: [300, CANVAS_HEIGHT - 180],
+                    message: "Bem-vinda à nossa aventura! Colete o coração para a próxima fase."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [150, CANVAS_HEIGHT - 80, 100, 20],
+                        [300, CANVAS_HEIGHT - 130, 120, 20],
+                        [500, CANVAS_HEIGHT - 180, 150, 20]
+                    ],
+                    heart: [570, CANVAS_HEIGHT - 210],
+                    message: "Você não é só parte da minha vida, Kely — você é a parte que dá sentido ao todo.."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [100, CANVAS_HEIGHT - 100, 80, 20],
+                        [300, CANVAS_HEIGHT - 150, 120, 20],
+                        [500, CANVAS_HEIGHT - 200, 100, 20],
+                        [650, CANVAS_HEIGHT - 150, 50, 20]
+                    ],
+                    heart: [670, CANVAS_HEIGHT - 180],
+                    message: "Se eu pudesse escolher um lugar pra recomeçar todos os dias, seria no teu abraço."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [100, CANVAS_HEIGHT - 70, 50, 20],
+                        [250, CANVAS_HEIGHT - 120, 50, 20],
+                        [400, CANVAS_HEIGHT - 170, 50, 20],
+                        [550, CANVAS_HEIGHT - 220, 50, 20]
+                    ],
+                    heart: [570, CANVAS_HEIGHT - 250],
+                    message: "Você tem o dom raro de deixar o mundo mais bonito só por existir dentro dele."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [50, CANVAS_HEIGHT - 80, 50, 20],
+                        [150, CANVAS_HEIGHT - 130, 50, 20],
+                        [250, CANVAS_HEIGHT - 180, 50, 20],
+                        [350, CANVAS_HEIGHT - 230, 50, 20],
+                        [450, CANVAS_HEIGHT - 280, 50, 20],
+                        [550, CANVAS_HEIGHT - 330, 50, 20]
+                    ],
+                    heart: [570, CANVAS_HEIGHT - 360],
+                    message: "Te amar é meu jogo favorito — e cada fase contigo vale mais do que qualquer final feliz."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [100, CANVAS_HEIGHT - 100, 100, 20],
+                        [300, CANVAS_HEIGHT - 80, 80, 20],
+                        [450, CANVAS_HEIGHT - 150, 120, 20],
+                        [600, CANVAS_HEIGHT - 100, 60, 20]
+                    ],
+                    heart: [620, CANVAS_HEIGHT - 130],
+                    message: "O que me move não é a vitória, é a chance de dividir esse caminho contigo."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [50, CANVAS_HEIGHT - 100, 50, 20],
+                        [200, CANVAS_HEIGHT - 150, 80, 20],
+                        [100, CANVAS_HEIGHT - 200, 60, 20],
+                        [350, CANVAS_HEIGHT - 250, 100, 20],
+                        [550, CANVAS_HEIGHT - 300, 80, 20]
+                    ],
+                    heart: [580, CANVAS_HEIGHT - 330],
+                    message: "Seu abraço é o meu lugar favorito no mundo."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [150, CANVAS_HEIGHT - 60, 60, 20],
+                        [300, CANVAS_HEIGHT - 100, 50, 20],
+                        [450, CANVAS_HEIGHT - 140, 70, 20],
+                        [600, CANVAS_HEIGHT - 180, 80, 20],
+                        [700, CANVAS_HEIGHT - 220, 60, 20]
+                    ],
+                    heart: [720, CANVAS_HEIGHT - 250],
+                    message: "."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [70, CANVAS_HEIGHT - 120, 100, 20],
+                        [250, CANVAS_HEIGHT - 180, 120, 20],
+                        [400, CANVAS_HEIGHT - 240, 80, 20],
+                        [550, CANVAS_HEIGHT - 300, 100, 20],
+                        [680, CANVAS_HEIGHT - 350, 80, 20]
+                    ],
+                    heart: [710, CANVAS_HEIGHT - 380],
+                    message: "Se existe alguma magia real nesse mundo, ela tem tua voz, teu toque e teu nome."
+                },
+                {
+                    platforms: [
+                        [0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30],
+                        [100, CANVAS_HEIGHT - 100, 100, 20],
+                        [300, CANVAS_HEIGHT - 200, 150, 20],
+                        [550, CANVAS_HEIGHT - 300, 200, 20]
+                    ],
+                    heart: [650, CANVAS_HEIGHT - 330], // Destino final para disparar a mensagem final
+                    message: "Você alcançou o coração final!"
+                }
+            ];
+
+            let currentLevel = 0;
+            let gameActive = false; // Controla se o loop do jogo está em execução
+            let keys = {
+                a: false,
+                d: false,
+                space: false
+            };
+
+            // Elementos DOM
+            const startScreen = document.getElementById('start-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const finalScreen = document.getElementById('final-screen');
+            const startButton = document.getElementById('startButton');
+            const currentLevelDisplay = document.getElementById('current-level-display');
+            const feedbackMessage = document.getElementById('feedback-message');
+            const restartLevelButton = document.getElementById('restartLevelButton');
+            const finalMessageDiv = document.getElementById('final-message');
+            const playAgainButton = document.getElementById('playAgainButton');
+            const messageBox = document.getElementById('messageBox');
+            const messageBoxText = document.getElementById('messageBoxText');
+            const messageBoxOkButton = document.getElementById('messageBoxOkButton'); 
+
+            // --- Funções do Jogo ---
+
+            function showMessageBox(message, callback = null) {
+                messageBoxText.textContent = message;
+                messageBox.style.display = 'block';
+                gameActive = false; // Pausa o jogo enquanto a caixa de mensagem está aberta
+                messageBoxOkButton.onclick = () => {
+                    messageBox.style.display = 'none';
+                    if (callback) callback();
+                    // gameActive = true; // Isso é reativado apenas se a callback levar a um novo nível de jogo
+                };
+            }
+
+            function resetPlayerPosition() {
+                player.x = 50;
+                // Ajusta a posição Y inicial do jogador para que ele fique na plataforma
+                // Se a imagem do personagem ainda não carregou, usa um fallback de tamanho para não dar erro
+                player.y = CANVAS_HEIGHT - 30 - (player.imageLoaded ? player.height : 50);
+                player.velocityY = 0;
+                player.onGround = false;
+            }
+
+            function loadLevel() {
+                if (currentLevel >= levels.length) {
+                    endGame();
+                    return;
+                }
+
+                resetPlayerPosition();
+                currentLevelDisplay.textContent = currentLevel + 1;
+                feedbackMessage.textContent = '';
+                restartLevelButton.style.display = 'none';
+
+                // Posiciona o coração para o novo nível
+                heart.x = levels[currentLevel].heart[0];
+                heart.y = levels[currentLevel].heart[1];
+
+                // Garante que as flores estáticas das plataformas sejam geradas para o nível atual
+                levels[currentLevel].platforms.forEach(p => { 
+                    // Garante que as flores sejam geradas apenas uma vez por plataforma
+                    if (!p.staticFlowers) { 
+                        p.staticFlowers = generateFlowersForPlatform(p);
+                    }
+                });
+            }
+
+            function drawPlayer() {
+                if (player.imageLoaded) {
+                    ctx.save(); // Salva o estado atual do contexto
+                    // Se o player não estiver virado para a direita, inverte o contexto horizontalmente
+                    if (!player.facingRight) {
+                        ctx.translate(player.x + player.width / 2, player.y + player.height / 2); // Move a origem para o centro do player
+                        ctx.scale(-1, 1); // Inverte horizontalmente
+                        ctx.drawImage(player.image, -player.width / 2, -player.height / 2, player.width, player.height); // Desenha a imagem centralizada
+                    } else {
+                        // Desenha a imagem normalmente se estiver virado para a direita
+                        ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
+                    }
+                    ctx.restore(); // Restaura o estado original do contexto
+                } else {
+                    // Fallback: Desenha um quadrado se a imagem não estiver carregada
+                    ctx.fillStyle = '#ffb3ba'; // Rosa claro
+                    ctx.fillRect(player.x, player.y, player.width, player.height);
+                }
+            }
+
+            // Função para desenhar uma flor com "pétalas" de círculos
+            function drawPetalFlower(x, y, size, color) {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                // Círculo central
+                ctx.arc(x, y, size * 0.4, 0, Math.PI * 2);
+                // Quatro "pétalas" ao redor
+                ctx.arc(x - size * 0.4, y, size * 0.3, 0, Math.PI * 2);
+                ctx.arc(x + size * 0.4, y, size * 0.3, 0, Math.PI * 2);
+                ctx.arc(x, y - size * 0.4, size * 0.3, 0, Math.PI * 2);
+                ctx.arc(x, y + size * 0.4, size * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            function drawPlatforms() {
+                // Desenha as plataformas com grama e flores (desenho Canvas)
+                levels[currentLevel].platforms.forEach(p => {
+                    const platformX = p[0];
+                    const platformY = p[1];
+                    const platformWidth = p[2];
+                    const platformHeight = p[3]; // Altura da plataforma base
+
+                    // Desenha a parte de terra/base da plataforma (mais escura)
+                    ctx.fillStyle = '#36200B'; // Marrom muito escuro
+                    ctx.fillRect(platformX, platformY + platformHeight / 2, platformWidth, platformHeight / 2);
+
+                    // Desenha a parte de grama da plataforma (verde mais escuro)
+                    ctx.fillStyle = '#006400'; // Verde escuro
+                    ctx.fillRect(platformX, platformY, platformWidth, platformHeight / 2);
+
+                    // Desenha as flores estáticas
+                    // As flores são geradas por plataforma e armazenadas em p.staticFlowers
+                    if (p.staticFlowers) { 
+                        p.staticFlowers.forEach(flower => {
+                            drawPetalFlower(platformX + flower.x_rel, platformY + flower.y_rel, flower.petalSize, flower.color);
+                        });
+                    }
+                });
+            }
+
+            function drawHeart() {
+                if (heart.imageLoaded) {
+                    // Desenha a imagem do coração
+                    // Subtrai heart.size/2 para centralizar a imagem no ponto (heart.x, heart.y)
+                    ctx.drawImage(heart.image, heart.x - heart.size / 2, heart.y - heart.size / 2, heart.size, heart.size);
+                } else {
+                    // Fallback: Desenha uma forma de coração simples se a imagem não estiver carregada
+                    const heartX = heart.x;
+                    const heartY = heart.y;
+                    const heartSize = heart.size; // Tamanho fixo
+
+                    ctx.fillStyle = '#ff6b6b'; // Cor padrão de fallback
+                    ctx.beginPath();
+                    ctx.moveTo(heartX, heartY + heartSize / 4); // Ponto inferior
+                    ctx.bezierCurveTo(
+                        heartX + heartSize / 2, heartY - heartSize / 2, // Ponto de controle 1 (topo direito)
+                        heartX + heartSize, heartY - heartSize / 4,   // Ponto de controle 2 (meio direito)
+                        heartX, heartY + heartSize                    // Ponto final (inferior)
+                    );
+                    ctx.bezierCurveTo(
+                        heartX - heartSize, heartY - heartSize / 4,   // Ponto de controle 3 (meio esquerdo)
+                        heartX - heartSize / 2, heartY - heartSize / 2, // Ponto de controle 4 (topo esquerdo)
+                        heartX, heartY + heartSize / 4                // Ponto inicial (inferior)
+                    );
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+
+            function drawBackground() {
+                // Desenha o fundo de céu estrelado pixelado (estático)
+                ctx.fillStyle = '#0a0a2a'; // Cor de um céu noturno bem escuro
+                ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+                // Desenha as estrelas pixeladas (pequenos quadrados estáticos)
+                // As estrelas são geradas apenas uma vez ao carregar o script (fora desta função)
+                backgroundStars.forEach(star => {
+                    ctx.fillStyle = `rgba(255, 255, 255, 1)`; // Opacidade fixa
+                    ctx.fillRect(star.x, star.y, star.size, star.size);
+                });
+            }
+
+            // Nuvens
+            // const clouds = [ ... ]; // Removido, já declarado globalmente
+
+            function drawClouds() {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // Nuvens brancas semi-transparentes
+                clouds.forEach(cloud => {
+                    // Desenha uma nuvem simples com círculos sobrepostos
+                    ctx.beginPath();
+                    ctx.arc(cloud.x, cloud.y, cloud.width / 3, 0, Math.PI * 2);
+                    ctx.arc(cloud.x + cloud.width / 2, cloud.y - cloud.height / 3, cloud.width / 3, 0, Math.PI * 2);
+                    ctx.arc(cloud.x + cloud.width, cloud.y, cloud.width / 3, 0, Math.PI * 2);
+                    ctx.ellipse(cloud.x + cloud.width / 2, cloud.y + cloud.height / 4, cloud.width / 2, cloud.height / 4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.closePath();
+                });
+            }
+
+            function updateClouds() {
+                clouds.forEach(cloud => {
+                    cloud.x += cloud.speed;
+                    // Faz a nuvem reaparecer do lado esquerdo quando sai da tela pela direita
+                    if (cloud.x > CANVAS_WIDTH + cloud.width) {
+                        cloud.x = -cloud.width; // Reposiciona fora da tela à esquerda
+                        cloud.y = Math.random() * (CANVAS_HEIGHT / 3); // Nova posição Y aleatória na parte superior
+                        cloud.width = Math.random() * 80 + 50; // Nova largura aleatória
+                        cloud.height = cloud.width / 2; // Mantém proporção
+                    }
+                });
+            }
+
+            function updatePlayer() {
+                // Movimento horizontal
+                if (keys.a) {
+                    player.x -= player.speed;
+                    player.facingRight = false; // Virar para a esquerda
+                }
+                if (keys.d) {
+                    player.x += player.speed;
+                    player.facingRight = true; // Virar para a direita
+                }
+
+                // Aplica a gravidade
+                player.velocityY += player.gravity;
+                player.y += player.velocityY;
+
+                // Colisão com plataformas
+                player.onGround = false;
+                levels[currentLevel].platforms.forEach(p => {
+                    // p: [x, y, largura, altura]
+                    // Verifica colisão com o topo da plataforma
+                    if (player.x < p[0] + p[2] &&
+                        player.x + player.width > p[0] &&
+                        player.y + player.height > p[1] &&
+                        player.y + player.height < p[1] + p[3] + 5 && // Uma pequena margem para aterrissagem
+                        player.velocityY >= 0) { // Somente se estiver caindo
+                        player.y = p[1] - player.height; // Ajusta para o topo da plataforma
+                        player.velocityY = 0;
+                        player.onGround = true;
+                    }
+                });
+
+                // Pulando
+                if (keys.space && player.onGround) {
+                    player.velocityY = player.jumpStrength;
+                    player.onGround = false; // Não está mais no chão enquanto pula
+                    playSound('jump'); // Toca som de pulo
+                }
+
+                // Mantém o jogador dentro dos limites do canvas
+                if (player.x < 0) player.x = 0;
+                if (player.x + player.width > CANVAS_WIDTH) player.x = CANVAS_WIDTH - player.width;
+
+                // Verifica se o jogador caiu do fundo
+                if (player.y > CANVAS_HEIGHT) {
+                    gameActive = false; // Para as atualizações do loop do jogo
+                    playSound('fall'); // Toca som de queda
+                    showMessageBox("Você caiu! Tente novamente.", () => {
+                        resetPlayerPosition();
+                        feedbackMessage.textContent = "Você caiu! Tente novamente.";
+                        restartLevelButton.style.display = 'block'; // Mostra o botão de reiniciar
+                    });
+                }
+            }
+
+            function checkHeartCollision() {
+                // Detecção de colisão de caixa delimitadora para o coração
+                // Ajustado para usar as dimensões do ícone do coração
+                if (player.x < heart.x + heart.size / 2 &&
+                    player.x + player.width > heart.x - heart.size / 2 &&
+                    player.y < heart.y + heart.size / 2 &&
+                    player.y + player.height > heart.y - heart.size / 2) {
+                    // Coração coletado!
+                    playSound('collect'); // Toca som de coleta
+                    gameActive = false; // Pausa temporariamente as atualizações do loop do jogo
+                    const levelMessage = levels[currentLevel].message || "Coração coletado!";
+                    showMessageBox(levelMessage, () => {
+                        currentLevel++;
+                        if (currentLevel < levels.length) {
+                            loadLevel();
+                            gameActive = true; // Retoma o loop do jogo
+                        } else {
+                            endGame();
+                        }
+                    });
+                }
+            }
+
+            function updateAnimations() {
+                updateClouds(); // Atualiza a posição das nuvens
+            }
+
+            function draw() {
+                drawBackground(); // Desenha o fundo estrelado (estático)
+                drawClouds(); // Desenha as nuvens (em movimento)
+                drawPlatforms(); // Desenha as plataformas (estáticas)
+                drawHeart(); // Desenha o coração (estático)
+                drawPlayer(); // Desenha o jogador
+            }
+
+            function gameLoop() {
+                if (gameActive) {
+                    updatePlayer();
+                    checkHeartCollision();
+                    updateAnimations(); // Atualiza animações para as nuvens
+                }
+                draw(); // Sempre desenha para mostrar o estado inicial ou quando pausado
+                requestAnimationFrame(gameLoop);
+            }
+
+            // --- Listeners de Eventos ---
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key.toLowerCase() === 'a') keys.a = true;
+                if (e.key.toLowerCase() === 'd') keys.d = true;
+                if (e.key === ' ') {
+                    keys.space = true;
+                    e.preventDefault(); // Impede a rolagem na barra de espaço
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                if (e.key.toLowerCase() === 'a') keys.a = false;
+                if (e.key.toLowerCase() === 'd') keys.d = false;
+                if (e.key === ' ') keys.space = false;
+            });
+
+            // Adiciona listeners para os botões móveis
+            const leftButton = document.getElementById('leftButton');
+            const rightButton = document.getElementById('rightButton');
+            const jumpButton = document.getElementById('jumpButton');
+
+            // Eventos touchstart e touchend para simular pressionar/soltar tecla
+            leftButton.addEventListener('touchstart', (e) => { e.preventDefault(); keys.a = true; });
+            leftButton.addEventListener('touchend', (e) => { e.preventDefault(); keys.a = false; });
+            leftButton.addEventListener('mousedown', () => { keys.a = true; }); // Para desktop click
+            leftButton.addEventListener('mouseup', () => { keys.a = false; });
+
+            rightButton.addEventListener('touchstart', (e) => { e.preventDefault(); keys.d = true; });
+            rightButton.addEventListener('touchend', (e) => { e.preventDefault(); keys.d = false; });
+            rightButton.addEventListener('mousedown', () => { keys.d = true; }); // Para desktop click
+            rightButton.addEventListener('mouseup', () => { keys.d = false; });
+
+            jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); keys.space = true; });
+            jumpButton.addEventListener('touchend', (e) => { e.preventDefault(); keys.space = false; });
+            jumpButton.addEventListener('mousedown', () => { keys.space = true; }); // Para desktop click
+            jumpButton.addEventListener('mouseup', () => { keys.space = false; });
+
+
+            startButton.addEventListener('click', () => {
+                startScreen.style.display = 'none';
+                gameScreen.style.display = 'block';
+                currentLevel = 0;
+                loadLevel(); // Carrega os dados do primeiro nível
+                gameActive = true; // Ativa a lógica do jogo
+                requestAnimationFrame(gameLoop); // Inicia o loop do jogo aqui
+            });
+
+            restartLevelButton.addEventListener('click', () => {
+                feedbackMessage.textContent = '';
+                restartLevelButton.style.display = 'none';
+                loadLevel(); // Recarrega o nível atual
+                gameActive = true; // Retoma o loop do jogo
+            });
+
+            playAgainButton.addEventListener('click', () => {
+                finalScreen.style.display = 'none';
+                startScreen.style.display = 'block';
+                currentLevel = 0;
+                // Não precisa chamar loadLevel ou gameLoop aqui, o botão startButton lida com isso.
+            });
+
+            function endGame() {
+                gameActive = false;
+                gameScreen.style.display = 'none';
+                finalScreen.style.display = 'block';
+finalMessageDiv.innerHTML = `✨ Você chegou até aqui.
+
+Entre pulos no escuro, corações flutuando e plataformas que pareciam longe demais…
+você veio. Não porque o jogo pediu.
+Mas porque ele foi feito pra você.
+
+Kely, isso tudo — pixel por pixel — foi criado com o mesmo cuidado que eu tenho quando penso em ti.
+Não é só um joguinho. É um retrato.
+De como você é o prêmio.
+De como o universo inteiro parece fazer mais sentido quando você tá no meio.
+
+E cada fase que você passou aqui,
+é só um espelho pequeno daquilo que você move em mim.
+Você me faz querer construir mundos,
+me faz querer pular mais alto,
+me faz querer tentar de novo, sempre que eu cair.
+
+🌹 Hoje é Dia dos Namorados, mas amar você não é um evento —
+é uma rotina sagrada.
+É algo que escapa da tela, explode no peito,
+e me transforma em alguém melhor.
+
+Obrigado por estar aqui.
+Não só nesse jogo… mas na minha vida.. ❤️<br><br>! Te amo muito!<br><br>Com todo o meu amor!`; // Personalize aqui!
+            }
+
+            // Configuração inicial: A chamada para requestAnimationFrame(gameLoop) foi movida para o clique do botão.
+            // draw() é chamado aqui apenas para desenhar a tela inicial (antes do jogo começar).
+            draw(); 
+        })(); // Fim da IIFE
+    </script>
+</body>
+</html>
